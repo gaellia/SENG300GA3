@@ -29,6 +29,7 @@
 > Your document must also address one additional question from the following list:
 
 > > How stable are nested, local, and anonymous types, particularly compared to other types? (Meaning: How much/how often do they change across versions of the same system?) Explain how you would realistically change your analysis tool and the actual analysis procedure in order to answer this question.
+
 > > How buggy are nested, local, and anonymous types, particularly compared to other types? Explain how you would realistically change your analysis tool and the actual analysis procedure in order to answer this question.
 
 > You and your team must provide a Git log that demonstrates who performed commits over time. (This can be used partially as evidence regarding individual opinions.)
@@ -37,11 +38,8 @@
 > You are required to submit:
 
 > > 1) your written document (plus a cover page with the names and student numbers of you and your teammates) as a single PDF document;
-
 > > 2) a ZIP file containing your exported Eclipse project (including your automated test suite);
-
 > > 3) your raw data (e.g., in a spreadsheet); and,
-
 > > 4) your Git log file
 
 ## List of Imported JARs

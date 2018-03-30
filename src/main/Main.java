@@ -13,6 +13,13 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.*;
 
 public class Main {
+	
+	// Type counts
+	private int totalNestCount = 0; // init nested type count
+	private int totalLocalCount = 0; // init local type count
+	private int totalAnonCount = 0; // init anonymous type count
+	
+	
 	/**
 	 * Constructor, sets which directory or jar file will be examined </br>	 * 
 	 */
@@ -53,6 +60,7 @@ public class Main {
 		
 		Map<String, Integer[]> globalMap = new HashMap<String, Integer[]>(); // init the map of all (TypeName, {References, Declarations}) pairs. 
 		
+		
 		// THIRD: parse all java files:
 		int i = 0;
 		while (i < javaFiles.size()) {
@@ -62,6 +70,7 @@ public class Main {
 				Map<String, Integer[]> localMap = visit(parse(source, javaFile.getParent())); // 1. parse the source string into an AST. 
 																						   // 2. visit every node of the AST to find References/Declarations of any type
 																						   // 3. store the returned map of number of refs/decs of each type found in file
+				
 				for (String key : localMap.keySet()) { // loop through every type in local map
 					Integer[] globalCount = globalMap.get(key); // retrieve total number of refs/decs found for this type
 					Integer[] localCount = localMap.get(key); // retrieve number of refs/decs found in this last file only
@@ -80,12 +89,18 @@ public class Main {
 			}
 		i++;
 		}
+		
+		// Print info for all types
+		System.out.println("Total Nested Types: " + totalNestCount);
+		System.out.println("Total Local Types: " + totalLocalCount);
+		System.out.println("Total Anonymous Types: " + totalAnonCount);
+		
 			
 		// Print info for EVERY type found:
-		for (String key : globalMap.keySet()) {
+		/*for (String key : globalMap.keySet()) {
 			System.out.println("-------------------------------------------------------------------------------------------------");	
-			System.out.format("%-50sDeclarations Found:%5d References Found:%5d\n", key, globalMap.get(key)[1], globalMap.get(key)[0]); 
-		}
+			System.out.format("%-50sDeclarations Found:%5d References Found:%5d\n", key, globalMap.get(key)[1], globalMap.get(key)[0]);
+		}*/
 		
 		// Finally: delete all TEMP folders to prevent clutter
 		JarHandler.deleteTempFolders();
@@ -160,6 +175,10 @@ public class Main {
 		CompilationUnit cu = (CompilationUnit)node;
 		cu.accept(vis);
 		Map<String, Integer[]> map = vis.getMap();
+		totalNestCount = totalNestCount + vis.getNestCount();
+		totalLocalCount = totalLocalCount + vis.getLocalCount();
+		totalAnonCount = totalAnonCount + vis.getAnonCount();
+		
 		return map; 
 	}
 	

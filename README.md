@@ -19,11 +19,17 @@
 > You and your team must provide a written document (5-7 pages in length, plus the cover page) explaining the following:
 
 > > What are your answers to the above questions?
+
 > > How did you select the 100 systems?
+
 > > How did you collect, record, and analyze the data in order to address the questions?
+
 > > How many bugs did you find in your analysis tool?  Did you rerun earlier systems to make sure that you still obtained the same data?
+
 > > Are the results "correct"? How can we know?
+
 > > How will the results generalize to other Java systems, and to non-Java systems?
+
 > > Are nested, local, and anonymous types worthwhile, considering how they are used in practice and the extra complications that they cause (for developers? for analyzers?)?
 
 > Your document must also address one additional question from the following list:

@@ -1,24 +1,39 @@
 package main;
 
+import static org.junit.Assert.assertFalse;
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
+import org.eclipse.core.internal.utils.FileUtil;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.*;
 
-public class Main {
-	/**
-	 * Constructor, sets which directory or jar file will be examined </br>	 * 
-	 */
-	public Main(String dir) {
-		
-		File directory = new File(dir); // make file out of abstract path name to directory/jar
+public class Main 
+{
+	public Main(File directory)
+	{
 		List<File> javaFiles = new ArrayList<File>(); // List of all .java files found
 		
 		if (directory.isDirectory()) { // if dir points to an existing directory...
@@ -41,6 +56,7 @@ public class Main {
 			}	
 			
 			// SECOND: recursively search through jar directory (including TEMP folders) to retrieve all .java files and put them in the list
+			String dir = directory.getName();
 			String noExtensionPath = dir.substring(0, dir.length() - 4); // cut off the .jar from end of dir path  
 			String jarDirectoryPath = noExtensionPath + "TEMP"; // add TEMP to end of path to get path to created TEMP folder 
 			File jarDirectory = new File(jarDirectoryPath); // make file out of abstract path name to jarDirectory 
@@ -89,18 +105,14 @@ public class Main {
 		
 		// Finally: delete all TEMP folders to prevent clutter
 		JarHandler.deleteTempFolders();
-		
 	}
 	
-	public String readFile(File file) throws FileNotFoundException
+	/**
+	 * Constructor, sets which directory or jar file will be examined </br>	 * 
+	 */
+	public Main(String dir) 
 	{
-	    Scanner scanner = new Scanner(file);
-	    String source = "";
-	    while (scanner.hasNextLine()) {
-	    	source += scanner.nextLine() + "\n";
-	    } 
-	    scanner.close();
-	    return source;
+		this(new File(dir)); // make file out of abstract path name to directory/jar
 	}
 	
 	/**
@@ -163,15 +175,114 @@ public class Main {
 		return map; 
 	}
 	
-	public static void main(String[] args) {
+	public static String readFile(File file) throws FileNotFoundException
+	{
+	    Scanner scanner = new Scanner(file);
+	    String source = "";
+	    while (scanner.hasNextLine()) {
+	    	source += scanner.nextLine() + "\n";
+	    } 
+	    scanner.close();
+	    return source;
+	}
+	
+	private static File downloadFile(String urlString, File target) throws UnsupportedEncodingException, IOException
+	{
+		if (!target.exists()) {
+			URL url = new URL(urlString);
+			InputStream inputStream = url.openStream();
+			Files.copy(inputStream, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		}
 		
+		return target;
+	}
+	
+	public static File unzip(File zipFile, File outputDirectory) throws IOException 
+	{      
+		if (!zipFile.getName().endsWith(".zip")) { return null; }
+		
+		if (outputDirectory.exists()) {
+			outputDirectory.delete();
+		}
+		outputDirectory.mkdirs();
+		
+	    final ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zipFile));
+	    final byte[] buffer = new byte[1024];
+
+	    while (true) {
+	    		ZipEntry zipEntry = zipInputStream.getNextEntry();
+	    		if (zipEntry == null) { break; }
+	    
+	    		File zipEntryFile = new File(outputDirectory.getAbsolutePath() + File.separator + zipEntry.getName());
+	    		if (zipEntry.isDirectory()) {
+	    			zipEntryFile.mkdir();
+	    		} else {
+	    			BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(zipEntryFile));
+		    		while (true) {
+		    			int readBytes = zipInputStream.read(buffer, 0, buffer.length);
+		    			if (readBytes <= 0) { break; }
+		    			bufferedOutputStream.write(buffer, 0, readBytes);
+		    		}
+		    		bufferedOutputStream.close();
+	    		}
+
+	    		zipInputStream.closeEntry();
+//	    		if (zipEntry.getName().contains(".java")) {  
+//	    			StringBuilder stringBuilder = new StringBuilder();
+//	    			while (inputStreamReader.read(buffer, 0, buffer.length) > 0) {
+//	    				stringBuilder.append(new String(buffer));
+//	    			}
+//		    	
+//	    			System.out.println("\t" + zipEntry.getName() + " read bytes " + stringBuilder.length()); 
+//	    			// TODO: run type declaration counter code here!!!
+//	    		}
+	    }
+
+	    zipInputStream.close();
+	    
+	    return outputDirectory;
+	}
+	
+	public static void main(String[] args)
+	{
 		if (args.length == 1) {
 			new Main(args[0]); // treat the argument as a path
 		}
 		else {
-			new Main("/Volumes/Malish/Development/eclipse_workspace/SENG300GA3/Tests"); // treat the argument as a path
-			System.out.println("Usage: java Main <directoryPath or jarPath>"); // error message to direct user how to properly run program
+			try {
+				String string = readFile(new File("assets/gitURLs.txt"));
+				String[] gitURLs = string.split("\n");
+				
+				for (int i = 0; i < gitURLs.length; i += 1) {
+					try {
+						String gitURL = gitURLs[i];
+						// Download the zip to simplify things
+						String gitZipURL = gitURL + "/archive/master.zip";
+						// Valid file/directory name for unzipping
+						String fileName = gitURL.replaceAll("https://github.com/", "").replaceAll("/", "_");
+						System.out.println(fileName);
+						System.out.println("\tDownloading...");
+						File zipFile = downloadFile(gitZipURL, new File("output/" + fileName + ".zip"));
+						File outputDirectory = new File("output/" + fileName);
+						System.out.println("\tExtracting...");
+						outputDirectory = unzip(zipFile, outputDirectory);
+						
+						if (outputDirectory != null) {
+							System.out.println("\tComplete");
+							new Main(outputDirectory);
+						} else {
+							System.out.println("\tComplete");
+						}
+						
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			
+//			System.out.println("Usage: java Main <directoryPath or jarPath>"); // error message to direct user how to properly run program
 		}
-		
 	}
 }

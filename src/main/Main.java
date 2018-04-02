@@ -170,6 +170,20 @@ public class Main
 		return map; 
 	}
 	
+	public static void deleteFile(File file)
+	{
+		if (file == null) { return; }
+
+	    File[] files = file.listFiles();
+	    if (files != null) {
+	    		for (File file2 : files) {
+	    			deleteFile(file2);
+	        }
+	    }
+	    
+	    file.delete();
+	}
+	
 	public static String readFile(File file) throws FileNotFoundException
 	{
 	    Scanner scanner = new Scanner(file);
@@ -197,7 +211,7 @@ public class Main
 		if (!zipFile.getName().endsWith(".zip")) { return null; }
 		
 		if (outputDirectory.exists()) {
-			outputDirectory.delete();
+			deleteFile(outputDirectory);
 		}
 		outputDirectory.mkdirs();
 		
@@ -242,8 +256,7 @@ public class Main
 	{
 		if (args.length == 1) {
 			new Main(args[0]); // treat the argument as a path
-		}
-		else {
+		} else {
 			try {
 				String string = readFile(new File("assets/gitURLs.txt"));
 				String[] gitURLs = string.split("\n");
@@ -266,8 +279,10 @@ public class Main
 							System.out.println("\tComplete");
 							new Main(outputDirectory);
 						} else {
-							System.out.println("\tComplete");
+							System.out.println("\tFailed");
 						}
+						
+						deleteFile(outputDirectory);
 						
 					} catch (Exception e) {
 						e.printStackTrace();

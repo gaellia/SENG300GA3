@@ -52,7 +52,11 @@ public class JarHandler {
 	 * jar file to extract
 	 * @param folder
 	 * folder to extract to
+<<<<<<< HEAD
 	 * @throws IOExceptionZ
+=======
+	 * @throws IOException
+>>>>>>> 4f9ad26e95ebd1af4020038b45a0a389e93f6f66
 	 */
 	public static void extractJarToFolder(JarFile jarFile, File folder) throws IOException {
 		if (!folder.isDirectory()) { // if caller specifies an invalid folder, do nothing

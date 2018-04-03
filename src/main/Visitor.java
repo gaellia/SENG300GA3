@@ -10,9 +10,24 @@ import org.eclipse.jdt.core.dom.*;
  * AST Visitor for visiting References & Declarations
  * count[1] is declarations
  * count[0] is references
+ * Contains total count of nested/local/anon type declarations
  */
 public class Visitor extends ASTVisitor{
 	Map<String, Integer[]> map = new HashMap<String, Integer[]>();
+	int nestCount = 0;
+	int localCount = 0;
+	int anonCount = 0;
+	
+	public int getNestCount() {
+		return nestCount;
+	}
+	public int getLocalCount() {
+		return localCount;
+	}
+	public int getAnonCount() {
+		return anonCount;
+	}
+	
 	
 	public Map<String, Integer[]> getMap(){
 		return map;
@@ -20,7 +35,7 @@ public class Visitor extends ASTVisitor{
 	
 	//Visits when there is a primitive type (int, char, ...)
 	@Override
-	public boolean visit(PrimitiveType node) {
+	public boolean visit(PrimitiveType node) {			
 		if(!node.toString().equals("void")) {
 			String key = node.resolveBinding().getQualifiedName(); 
 			Integer[] count = map.get(key);
@@ -54,6 +69,16 @@ public class Visitor extends ASTVisitor{
 	//1. AnnotationType declaration
 	@Override
 	public boolean visit(AnnotationTypeDeclaration node) {
+		if (node.resolveBinding().isNested()) {
+			nestCount++;
+		}
+		if (node.resolveBinding().isLocal()) {
+			localCount++;
+		}
+		if (node.resolveBinding().isAnonymous()) {
+			anonCount++;
+		}
+			
 		String key = node.resolveBinding().getQualifiedName();
 		if (key.equals(""))
 			key = node.resolveBinding().getName();
@@ -69,6 +94,16 @@ public class Visitor extends ASTVisitor{
 	//2. Enum declaration
 	@Override
 	public boolean visit(EnumDeclaration node) {
+		if (node.resolveBinding().isNested()) {
+			nestCount++;
+		}
+		if (node.resolveBinding().isLocal()) {
+			localCount++;
+		}
+		if (node.resolveBinding().isAnonymous()) {
+			anonCount++;
+		}
+		
 		String key = node.resolveBinding().getQualifiedName();
 		if (key.equals(""))
 			key = node.resolveBinding().getName();
@@ -84,6 +119,14 @@ public class Visitor extends ASTVisitor{
 	//3-4. Class / Interface declaration
 	@Override
 	public boolean visit(TypeDeclaration node) {
+		if (node.resolveBinding().isNested()) {
+			nestCount++;
+		}
+		if (node.resolveBinding().isLocal()) {
+			localCount++;
+		}
+		
+		
 		String key = node.resolveBinding().getQualifiedName();
 		if (key.equals(""))
 			key = node.resolveBinding().getName();
@@ -99,15 +142,18 @@ public class Visitor extends ASTVisitor{
 	// 5. Anonymous Class declaration
 	@Override
 	public boolean visit(AnonymousClassDeclaration node) {
-		String key = node.resolveBinding().getQualifiedName();
-		if (key.equals(""))
-			key = node.resolveBinding().getKey() + " (Anonymous Class)";  
-		Integer[] count = map.get(key);
-		if(count != null) 
-			count[1]++;
-		else
-			count = new Integer[] {0,1};
-		map.put(key, count); 		
+		if (node.resolveBinding().isAnonymous()) {
+			anonCount++;
+			String key = node.resolveBinding().getQualifiedName();
+			if (key.equals(""))
+				key = node.resolveBinding().getKey() + " (Anonymous Class)";  
+			Integer[] count = map.get(key);
+			if(count != null) 
+				count[1]++;
+			else
+				count = new Integer[] {0,1};
+			map.put(key, count); 
+		}
 		return super.visit(node);
 	}
 	
@@ -145,6 +191,7 @@ public class Visitor extends ASTVisitor{
 	
 	@Override
 	public boolean visit(ParameterizedType node) {
+
 		String key = node.resolveBinding().getTypeDeclaration().getQualifiedName(); 
 		if (key.equals(""))
 			key = node.resolveBinding().getTypeDeclaration().getName(); 
@@ -159,6 +206,7 @@ public class Visitor extends ASTVisitor{
 
 	@Override
 	public boolean visit(ArrayType node) {	
+
 		String key; 
 		if (node.resolveBinding().getElementType().isLocal()) {
 			key = node.resolveBinding().getElementType().getName(); // name without brackets

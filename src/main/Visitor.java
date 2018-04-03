@@ -17,7 +17,11 @@ public class Visitor extends ASTVisitor{
 	int nestCount = 0;
 	int localCount = 0;
 	int anonCount = 0;
+	int otherCount=0;
 	
+	public int getOtherCount() {
+		return otherCount;
+	}
 	public int getNestCount() {
 		return nestCount;
 	}
@@ -78,6 +82,9 @@ public class Visitor extends ASTVisitor{
 		if (node.resolveBinding().isAnonymous()) {
 			anonCount++;
 		}
+		if(!((node.resolveBinding().isLocal())) && !(node.resolveBinding().isAnonymous()) &&! (node.resolveBinding().isAnonymous())){
+			otherCount++;
+		}
 			
 		String key = node.resolveBinding().getQualifiedName();
 		if (key.equals(""))
@@ -103,6 +110,9 @@ public class Visitor extends ASTVisitor{
 		if (node.resolveBinding().isAnonymous()) {
 			anonCount++;
 		}
+		if(!((node.resolveBinding().isLocal())) && !(node.resolveBinding().isAnonymous()) &&! (node.resolveBinding().isAnonymous())){
+			otherCount++;
+		}
 		
 		String key = node.resolveBinding().getQualifiedName();
 		if (key.equals(""))
@@ -124,6 +134,9 @@ public class Visitor extends ASTVisitor{
 		}
 		if (node.resolveBinding().isLocal()) {
 			localCount++;
+		}
+		if(!((node.resolveBinding().isLocal())) && !(node.resolveBinding().isAnonymous()) &&! (node.resolveBinding().isAnonymous())){
+			otherCount++;
 		}
 		
 		
@@ -233,5 +246,6 @@ public class Visitor extends ASTVisitor{
 		}
 		return super.visit(node);
 	}
+
 	
 }

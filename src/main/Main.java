@@ -34,6 +34,7 @@ public class Main
 	private int totalNestCount = 0; // init nested type count
 	private int totalLocalCount = 0; // init local type count
 	private int totalAnonCount = 0; // init anonymous type count
+	private int otherCount=0; //Init other type counts
 	
 	public Main(File directory, Boolean logOutput, AtomicInteger declarationCount, AtomicInteger referenceCount)
 	{
@@ -109,6 +110,7 @@ public class Main
 		System.out.println("Total Nested Type Declarations: " + totalNestCount);
 		System.out.println("Total Local Type Declarations: " + totalLocalCount);
 		System.out.println("Total Anonymous Class Declarations: " + totalAnonCount);
+		System.out.println("Other types declared: "+otherCount);
 			
 		if (logOutput) {
 			// Print info for EVERY type found:
@@ -190,6 +192,7 @@ public class Main
 		totalNestCount = totalNestCount + vis.getNestCount();
 		totalLocalCount = totalLocalCount + vis.getLocalCount();
 		totalAnonCount = totalAnonCount + vis.getAnonCount();
+		otherCount=otherCount+vis.getOtherCount();
 		
 		return map; 
 	}

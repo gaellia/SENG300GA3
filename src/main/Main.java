@@ -325,8 +325,6 @@ public class Main
 						
 						deleteFile(outputDirectory);
 						
-						System.out.println(csvStringBuilder.toString());
-						
 					} catch (Exception e) {
 						System.out.println("\tFailed");
 					}

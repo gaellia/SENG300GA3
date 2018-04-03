@@ -142,9 +142,6 @@ public class Visitor extends ASTVisitor{
 	// 5. Anonymous Class declaration
 	@Override
 	public boolean visit(AnonymousClassDeclaration node) {
-		if (node.resolveBinding().isNested()) {
-			nestCount++;
-		}		
 		if (node.resolveBinding().isAnonymous()) {
 			anonCount++;
 			String key = node.resolveBinding().getQualifiedName();

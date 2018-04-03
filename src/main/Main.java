@@ -7,15 +7,18 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.sql.Struct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -27,7 +30,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 
 public class Main 
 {
-	public Main(File directory)
+	public Main(File directory, Boolean logOutput, AtomicInteger declarationCount, AtomicInteger referenceCount)
 	{
 		List<File> javaFiles = new ArrayList<File>(); // List of all .java files found
 		
@@ -36,7 +39,7 @@ public class Main
 			try {
 				JarHandler.extractJars(directory);
 			} catch (IOException e1) {
-				e1.printStackTrace();
+//				e1.printStackTrace();
 			}	
 			
 			// SECOND: recursively search through directory (including TEMP folders) to retrieve all .java files and put them in the list
@@ -84,6 +87,10 @@ public class Main
 						globalCount = new Integer[] {localCount[0], localCount[1]}; // init the total count of refs/decs to this type
 					}
 					globalMap.put(key, globalCount); // update the global map
+					
+					// TODO: use other typees
+					referenceCount.addAndGet(localCount[0]);
+					declarationCount.addAndGet(localCount[1]);
 				}
 			} 
 			catch (IOException e) {
@@ -92,10 +99,12 @@ public class Main
 		i++;
 		}
 			
-		// Print info for EVERY type found:
-		for (String key : globalMap.keySet()) {
-			System.out.println("-------------------------------------------------------------------------------------------------");	
-			System.out.format("%-50sDeclarations Found:%5d References Found:%5d\n", key, globalMap.get(key)[1], globalMap.get(key)[0]); 
+		if (logOutput) {
+			// Print info for EVERY type found:
+			for (String key : globalMap.keySet()) {
+				System.out.println("-------------------------------------------------------------------------------------------------");	
+				System.out.format("%-50sDeclarations Found:%5d References Found:%5d\n", key, globalMap.get(key)[1], globalMap.get(key)[0]); 
+			}
 		}
 		
 		// Finally: delete all TEMP folders to prevent clutter
@@ -105,9 +114,9 @@ public class Main
 	/**
 	 * Constructor, sets which directory or jar file will be examined </br>	 * 
 	 */
-	public Main(String dir) 
+	public Main(String dir, Boolean logOutput, AtomicInteger declarationCount, AtomicInteger referenceCount) 
 	{
-		this(new File(dir)); // make file out of abstract path name to directory/jar
+		this(new File(dir), logOutput, declarationCount, referenceCount); // make file out of abstract path name to directory/jar
 	}
 	
 	/**
@@ -255,15 +264,29 @@ public class Main
 	public static void main(String[] args)
 	{
 		if (args.length == 1) {
-			new Main(args[0]); // treat the argument as a path
+			AtomicInteger declarationCount = new AtomicInteger(0);
+			AtomicInteger referenceCount = new AtomicInteger(0);
+			new Main(args[0], true, declarationCount, referenceCount); // treat the argument as a path
 		} else {
+			
+			StringBuilder csvStringBuilder = new StringBuilder()
+					.append("name")
+					.append(",")
+					.append("url")
+					.append(",")
+					.append("declarationCount")
+					.append(",")
+					.append("referenceCount")
+					.append("\n");
+			
 			try {
 				String string = readFile(new File("assets/gitURLs.txt"));
 				String[] gitURLs = string.split("\n");
 				
 				for (int i = 0; i < gitURLs.length; i += 1) {
+					String gitURL = gitURLs[i];
 					try {
-						String gitURL = gitURLs[i];
+						gitURL = gitURL.replaceFirst("(.git)$", "");
 						// Download the zip to simplify things
 						String gitZipURL = gitURL + "/archive/master.zip";
 						// Valid file/directory name for unzipping
@@ -277,19 +300,52 @@ public class Main
 						
 						if (outputDirectory != null) {
 							System.out.println("\tComplete");
-							new Main(outputDirectory);
+							
+							AtomicInteger declarationCount = new AtomicInteger(0);
+							AtomicInteger referenceCount = new AtomicInteger(0);
+//							AtomicInteger nestedTypeCount = new AtomicInteger(0);
+//							AtomicInteger localTypeCount = new AtomicInteger(0);
+//							AtomicInteger anonymousTypeCount = new AtomicInteger(0);
+//							AtomicInteger othereTypeCount = new AtomicInteger(0);
+							new Main(outputDirectory, false, declarationCount, referenceCount);
+							
+							csvStringBuilder = csvStringBuilder.append(fileName)
+									.append(",")
+									.append(gitURL)
+									.append(",")
+									.append(declarationCount.get())
+									.append(",")
+									.append(referenceCount.get())
+									.append("\n");
+//							System.out.printf("\tdeclarationCount: %d referenceCount: %d\n", declarationCount.get(), referenceCount.get());
+							
 						} else {
 							System.out.println("\tFailed");
 						}
 						
 						deleteFile(outputDirectory);
 						
+						System.out.println(csvStringBuilder.toString());
+						
 					} catch (Exception e) {
-						e.printStackTrace();
+						System.out.println("\tFailed");
 					}
 				}
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
+			}
+			
+			
+			
+			// write csv to file
+			File csvFile = new File("output/" + "results.csv");
+			try {
+				PrintWriter printWriter = new PrintWriter(csvFile);
+				printWriter.write(csvStringBuilder.toString());
+				printWriter.close();
+				System.out.println("Saved to " + csvFile);
+			} catch (FileNotFoundException e) {
+				System.out.println("Failed to write to" + csvFile);
 			}
 			
 //			System.out.println("Usage: java Main <directoryPath or jarPath>"); // error message to direct user how to properly run program

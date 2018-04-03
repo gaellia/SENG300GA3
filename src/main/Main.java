@@ -30,6 +30,11 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 
 public class Main 
 {
+	
+	private int totalNestCount = 0; // init nested type count
+	private int totalLocalCount = 0; // init local type count
+	private int totalAnonCount = 0; // init anonymous type count
+	
 	public Main(File directory, Boolean logOutput, AtomicInteger declarationCount, AtomicInteger referenceCount)
 	{
 		List<File> javaFiles = new ArrayList<File>(); // List of all .java files found
@@ -91,6 +96,7 @@ public class Main
 					// TODO: use other typees
 					referenceCount.addAndGet(localCount[0]);
 					declarationCount.addAndGet(localCount[1]);
+					
 				}
 			} 
 			catch (IOException e) {
@@ -98,6 +104,11 @@ public class Main
 			}
 		i++;
 		}
+		
+		// Print info for all types
+		System.out.println("Total Nested Type Declarations: " + totalNestCount);
+		System.out.println("Total Local Type Declarations: " + totalLocalCount);
+		System.out.println("Total Anonymous Class Declarations: " + totalAnonCount);
 			
 		if (logOutput) {
 			// Print info for EVERY type found:
@@ -176,6 +187,10 @@ public class Main
 		CompilationUnit cu = (CompilationUnit)node;
 		cu.accept(vis);
 		Map<String, Integer[]> map = vis.getMap();
+		totalNestCount = totalNestCount + vis.getNestCount();
+		totalLocalCount = totalLocalCount + vis.getLocalCount();
+		totalAnonCount = totalAnonCount + vis.getAnonCount();
+		
 		return map; 
 	}
 	

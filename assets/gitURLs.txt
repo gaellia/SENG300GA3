@@ -55,3 +55,6 @@ https://github.com/dvorka/shifts-solver
 https://github.com/cloudrave/Optimizer
 https://github.com/morinted/schedule-generator
 https://github.com/chillyistkult/Simple-Cinema-Booking-System
+https://github.com/uhudpoyraz/FlightTrackApp
+https://github.com/adamhajari/FlightScheduler
+https://github.com/shubhamvadhera/library-management-spring

@@ -327,7 +327,10 @@ public class Main
 //							AtomicInteger localTypeCount = new AtomicInteger(0);
 //							AtomicInteger anonymousTypeCount = new AtomicInteger(0);
 //							AtomicInteger othereTypeCount = new AtomicInteger(0);
+							System.out.print("\tCounting Types...");
 							new Main(outputDirectory, false, declarationCount, referenceCount);
+							
+							System.out.print("Complete\n");
 							
 							csvStringBuilder = csvStringBuilder.append(fileName)
 									.append(",")
@@ -346,7 +349,7 @@ public class Main
 						deleteFile(outputDirectory);
 						
 					} catch (Exception e) {
-						System.out.println("\tFailed");
+						System.out.print("Failed\n");
 					}
 				}
 			} catch (FileNotFoundException e) {

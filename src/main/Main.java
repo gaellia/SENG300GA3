@@ -34,6 +34,7 @@ public class Main
 	private int totalNestCount = 0; // init nested type count
 	private int totalLocalCount = 0; // init local type count
 	private int totalAnonCount = 0; // init anonymous type count
+	private int otherCount=0; //Init other type counts
 	
 	public Main(File directory, Boolean logOutput, AtomicInteger declarationCount, AtomicInteger referenceCount)
 	{
@@ -104,13 +105,15 @@ public class Main
 			}
 		i++;
 		}
-		
-		// Print info for all types
-		System.out.println("Total Nested Type Declarations: " + totalNestCount);
-		System.out.println("Total Local Type Declarations: " + totalLocalCount);
-		System.out.println("Total Anonymous Class Declarations: " + totalAnonCount);
 			
 		if (logOutput) {
+			
+			// Print info for all types
+			System.out.println("Total Nested Type Declarations: " + totalNestCount);
+			System.out.println("Total Local Type Declarations: " + totalLocalCount);
+			System.out.println("Total Anonymous Class Declarations: " + totalAnonCount);
+			System.out.println("Other types declared: "+otherCount);
+			
 			// Print info for EVERY type found:
 			for (String key : globalMap.keySet()) {
 				System.out.println("-------------------------------------------------------------------------------------------------");	
@@ -190,6 +193,7 @@ public class Main
 		totalNestCount = totalNestCount + vis.getNestCount();
 		totalLocalCount = totalLocalCount + vis.getLocalCount();
 		totalAnonCount = totalAnonCount + vis.getAnonCount();
+//		otherCount=otherCount+vis.getOtherCount();
 		
 		return map; 
 	}
@@ -307,14 +311,15 @@ public class Main
 						// Valid file/directory name for unzipping
 						String fileName = gitURL.replaceAll("https://github.com/", "").replaceAll("/", "_");
 						System.out.println(fileName);
-						System.out.println("\tDownloading...");
+						System.out.print("\tDownloading...");
 						File zipFile = downloadFile(gitZipURL, new File("output/" + fileName + ".zip"));
+						System.out.print("Complete\n");
 						File outputDirectory = new File("output/" + fileName);
-						System.out.println("\tExtracting...");
+						System.out.print("\tExtracting...");
 						outputDirectory = unzip(zipFile, outputDirectory);
 						
 						if (outputDirectory != null) {
-							System.out.println("\tComplete");
+							System.out.print("Complete\n");
 							
 							AtomicInteger declarationCount = new AtomicInteger(0);
 							AtomicInteger referenceCount = new AtomicInteger(0);
@@ -335,7 +340,7 @@ public class Main
 //							System.out.printf("\tdeclarationCount: %d referenceCount: %d\n", declarationCount.get(), referenceCount.get());
 							
 						} else {
-							System.out.println("\tFailed");
+							System.out.print("Failed\n");
 						}
 						
 						deleteFile(outputDirectory);

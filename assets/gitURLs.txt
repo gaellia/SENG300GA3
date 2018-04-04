@@ -1,2 +1,11 @@
-https://github.com/termux/termux-app
+https://github.com/termux/termux-app.git
+https://github.com/jsaalfeld/minesweeper-mvc
+https://github.com/forge/roaster
+https://github.com/shekhargulati/strman-java
+https://github.com/TEAMMATES/teammates
+https://github.com/mockito/mockito
 https://github.com/hexadeciman/Snake.git
+https://github.com/junit-team/junit4
+https://github.com/pac4j/pac4j
+https://github.com/javaee/security-api
+https://github.com/gitblit/gitblit

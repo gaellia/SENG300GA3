@@ -301,6 +301,7 @@ public class Main
 			try {
 				String string = readFile(new File("assets/gitURLs.txt"));
 				String[] gitURLs = string.split("\n");
+				File outputDirectory = null;
 				
 				for (int i = 0; i < gitURLs.length; i += 1) {
 					String gitURL = gitURLs[i];
@@ -314,7 +315,7 @@ public class Main
 						System.out.print("\tDownloading...");
 						File zipFile = downloadFile(gitZipURL, new File("output/" + fileName + ".zip"));
 						System.out.print("Complete\n");
-						File outputDirectory = new File("output/" + fileName);
+						outputDirectory = new File("output/" + fileName);
 						System.out.print("\tExtracting...");
 						outputDirectory = unzip(zipFile, outputDirectory);
 						
@@ -346,10 +347,10 @@ public class Main
 							System.out.print("Failed\n");
 						}
 						
-						deleteFile(outputDirectory);
-						
 					} catch (Exception e) {
 						System.out.print("Failed\n");
+					} finally {
+						deleteFile(outputDirectory);
 					}
 				}
 			} catch (FileNotFoundException e) {

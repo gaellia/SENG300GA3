@@ -30,14 +30,23 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 
 public class Main 
 {
+	private AtomicInteger nestedTypeCount;
+	private AtomicInteger localTypeCount;
+	private AtomicInteger anonymousTypeCount;
+	private AtomicInteger otherTypeCount;
 	
-	private int totalNestCount = 0; // init nested type count
-	private int totalLocalCount = 0; // init local type count
-	private int totalAnonCount = 0; // init anonymous type count
-	private int otherCount=0; //Init other type counts
-	
-	public Main(File directory, Boolean logOutput, AtomicInteger declarationCount, AtomicInteger referenceCount)
+	public Main(File directory, 
+			Boolean logOutput,
+			AtomicInteger nestedTypeCount,
+			AtomicInteger localTypeCount,
+			AtomicInteger anonymousTypeCount, 
+			AtomicInteger otherTypeCount)
 	{
+		this.nestedTypeCount = nestedTypeCount;
+		this.localTypeCount = localTypeCount;
+		this.anonymousTypeCount = anonymousTypeCount;
+		this.otherTypeCount = otherTypeCount;
+		
 		List<File> javaFiles = new ArrayList<File>(); // List of all .java files found
 		
 		if (directory.isDirectory()) { // if dir points to an existing directory...
@@ -93,11 +102,6 @@ public class Main
 						globalCount = new Integer[] {localCount[0], localCount[1]}; // init the total count of refs/decs to this type
 					}
 					globalMap.put(key, globalCount); // update the global map
-					
-					// TODO: use other typees
-					referenceCount.addAndGet(localCount[0]);
-					declarationCount.addAndGet(localCount[1]);
-					
 				}
 			} 
 			catch (IOException e) {
@@ -109,10 +113,10 @@ public class Main
 		if (logOutput) {
 			
 			// Print info for all types
-			System.out.println("Total Nested Type Declarations: " + totalNestCount);
-			System.out.println("Total Local Type Declarations: " + totalLocalCount);
-			System.out.println("Total Anonymous Class Declarations: " + totalAnonCount);
-			System.out.println("Other types declared: "+otherCount);
+			System.out.println("Total Nested Type Declarations: " + this.nestedTypeCount.get());
+			System.out.println("Total Local Type Declarations: " + this.localTypeCount.get());
+			System.out.println("Total Anonymous Class Declarations: " + this.anonymousTypeCount.get());
+			System.out.println("Other types declared: "+ this.otherTypeCount.get());
 			
 			// Print info for EVERY type found:
 			for (String key : globalMap.keySet()) {
@@ -128,9 +132,19 @@ public class Main
 	/**
 	 * Constructor, sets which directory or jar file will be examined </br>	 * 
 	 */
-	public Main(String dir, Boolean logOutput, AtomicInteger declarationCount, AtomicInteger referenceCount) 
+	public Main(String dir,
+			Boolean logOutput,
+			AtomicInteger nestedTypeCount,
+			AtomicInteger localTypeCount,
+			AtomicInteger anonymousTypeCount, 
+			AtomicInteger otherTypeCount) 
 	{
-		this(new File(dir), logOutput, declarationCount, referenceCount); // make file out of abstract path name to directory/jar
+		this(new File(dir),
+				logOutput,
+				nestedTypeCount, 
+				localTypeCount, 
+				anonymousTypeCount,
+				otherTypeCount); // make file out of abstract path name to directory/jar
 	}
 	
 	/**
@@ -190,10 +204,11 @@ public class Main
 		CompilationUnit cu = (CompilationUnit)node;
 		cu.accept(vis);
 		Map<String, Integer[]> map = vis.getMap();
-		totalNestCount = totalNestCount + vis.getNestCount();
-		totalLocalCount = totalLocalCount + vis.getLocalCount();
-		totalAnonCount = totalAnonCount + vis.getAnonCount();
-//		otherCount=otherCount+vis.getOtherCount();
+		
+		this.nestedTypeCount.addAndGet(vis.getNestCount());
+		this.localTypeCount.addAndGet(vis.getLocalCount());
+		this.anonymousTypeCount.addAndGet(vis.getAnonCount());
+		this.otherTypeCount.addAndGet(vis.getOtherCount());
 		
 		return map; 
 	}
@@ -283,9 +298,19 @@ public class Main
 	public static void main(String[] args)
 	{
 		if (args.length == 1) {
-			AtomicInteger declarationCount = new AtomicInteger(0);
-			AtomicInteger referenceCount = new AtomicInteger(0);
-			new Main(args[0], true, declarationCount, referenceCount); // treat the argument as a path
+			
+			AtomicInteger nestedTypeCount = new AtomicInteger(0);
+			AtomicInteger localTypeCount = new AtomicInteger(0);
+			AtomicInteger anonymousTypeCount = new AtomicInteger(0);
+			AtomicInteger otherTypeCount = new AtomicInteger(0);
+			
+			new Main(args[0], 
+					false,
+					nestedTypeCount,
+					localTypeCount,
+					anonymousTypeCount, 
+					otherTypeCount);		// treat the argument as a path
+			
 		} else {
 			
 			StringBuilder csvStringBuilder = new StringBuilder()
@@ -293,9 +318,13 @@ public class Main
 					.append(",")
 					.append("url")
 					.append(",")
-					.append("declarationCount")
+					.append("nestedTypeCount")
 					.append(",")
-					.append("referenceCount")
+					.append("localTypeCount")
+					.append(",")
+					.append("anonymousTypeCount")
+					.append(",")
+					.append("otherTypeCount")
 					.append("\n");
 			
 			try {
@@ -322,14 +351,17 @@ public class Main
 						if (outputDirectory != null) {
 							System.out.print("Complete\n");
 							
-							AtomicInteger declarationCount = new AtomicInteger(0);
-							AtomicInteger referenceCount = new AtomicInteger(0);
-//							AtomicInteger nestedTypeCount = new AtomicInteger(0);
-//							AtomicInteger localTypeCount = new AtomicInteger(0);
-//							AtomicInteger anonymousTypeCount = new AtomicInteger(0);
-//							AtomicInteger othereTypeCount = new AtomicInteger(0);
+							AtomicInteger nestedTypeCount = new AtomicInteger(0);
+							AtomicInteger localTypeCount = new AtomicInteger(0);
+							AtomicInteger anonymousTypeCount = new AtomicInteger(0);
+							AtomicInteger otherTypeCount = new AtomicInteger(0);
 							System.out.print("\tCounting Types...");
-							new Main(outputDirectory, false, declarationCount, referenceCount);
+							new Main(outputDirectory, 
+									false,
+									nestedTypeCount,
+									localTypeCount,
+									anonymousTypeCount, 
+									otherTypeCount);
 							
 							System.out.print("Complete\n");
 							
@@ -337,9 +369,13 @@ public class Main
 									.append(",")
 									.append(gitURL)
 									.append(",")
-									.append(declarationCount.get())
+									.append(nestedTypeCount.get())
 									.append(",")
-									.append(referenceCount.get())
+									.append(localTypeCount.get())
+									.append(",")
+									.append(anonymousTypeCount.get())
+									.append(",")
+									.append(otherTypeCount.get())
 									.append("\n");
 //							System.out.printf("\tdeclarationCount: %d referenceCount: %d\n", declarationCount.get(), referenceCount.get());
 							

@@ -98,4 +98,3 @@ https://github.com/drugis/addis
 https://github.com/nicolasjafelle/Qachee
 https://github.com/naeemkhan12/CurrencyConverter
 https://github.com/teachus/teachus
-https://github.com/Sajjad4563/Library-Management-System

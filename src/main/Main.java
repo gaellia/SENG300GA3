@@ -238,7 +238,7 @@ public class Main
 	    return source;
 	}
 	
-	private static File downloadFile(String urlString, File target) throws UnsupportedEncodingException, IOException
+	static File downloadFile(String urlString, File target) throws UnsupportedEncodingException, IOException
 	{
 		if (!target.exists()) {
 			URL url = new URL(urlString);
